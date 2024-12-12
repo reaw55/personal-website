@@ -1,0 +1,22 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="200"
+  height="150"
+  viewBox="0 0 30 20"
+  preserveAspectRatio="xMidYMid meet"
+>
+  <!-- Rounded white background -->
+  <rect
+    width="30"
+    height="20"
+    rx="1"
+    ry="1"
+    fill="#FFFFFF"
+  />
+  
+  <!-- Horizontal red stripe -->
+  <rect y="9" width="30" height="2" fill="#CF142B" />
+  
+  <!-- Vertical red stripe -->
+  <rect x="14" width="2" height="20" fill="#CF142B" />
+</svg>

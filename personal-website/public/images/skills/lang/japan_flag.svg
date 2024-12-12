@@ -1,0 +1,23 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="200"
+  height="150"
+  viewBox="0 0 3 2.25"
+  preserveAspectRatio="xMidYMid meet"
+>
+  <!-- Rounded white background -->
+  <rect
+    width="3"
+    height="2.25"
+    rx="0.15"
+    ry="0.15"
+    fill="#FFFFFF"
+  />
+  <!-- Red circle (sun) -->
+  <circle
+    cx="1.5"
+    cy="1.125"
+    r="0.6"
+    fill="#DC143C"
+  />
+</svg>
