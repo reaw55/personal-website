@@ -11,8 +11,14 @@ export default {
       fontFamily: {
         sans: ['Inter', 'sans-serif'], // Custom font family for 'Inter'
       },
+      fontSize: {
+        '44': '2.7rem', // Custom font size (44px)
+        '40': '2.5rem', // Custom font size (40px)
+      },
       screens: {
         '544': '544px', // custom breakpoint
+        'xs': '400px',
+        '1050': '1050px'
       },
     },
   },

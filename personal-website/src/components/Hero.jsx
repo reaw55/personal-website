@@ -25,7 +25,7 @@ const Hero = () => {
               Available for work
             </div>
           </div> */}
-          <h2 className="headline-1 max-w-[15ch] sm:max-w-20ch lg:max-w-[15ch] mt-5 mb-8 lg:mb-10 break-words"
+          <h2 className="headline-1 max-w-[15ch] sm:max-w-20ch lg:max-w-[15ch] mt-5 mb-8 lg:mb-10 break-words max-sm:text-44 max-xs:text-40"
           style={{ lineHeight: '1.2', paddingBottom: '0.1em' }}
           >
             Kritchavit Thippayajindakul
