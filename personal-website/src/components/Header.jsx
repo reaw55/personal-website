@@ -1,13 +1,22 @@
 // Desc: Header component for the website
 
 //nodes modules
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // components
 import Navbar from './Navbar';
 
 const Header = () => {
   const [navOpen, setNavOpen] = useState(false);
+
+  // Escape closes the mobile menu (WCAG 2.1.2 / audit A11Y-2)
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e) => e.key === 'Escape' && setNavOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navOpen]);
+
   return (
     <header
       className="fixed top-0 left-0 w-full h-20 max-lg:landscape:h-16 flex items-center
@@ -18,7 +27,12 @@ const Header = () => {
         <a href="/" className="logo w-fit" aria-label="Reaw – back to top">
           <img src="/images/logo/logo-v1.svg" width={40} height={40} alt="" />
         </a>
-        <div className="relative lg:justify-self-center">
+        <div
+          className="relative lg:justify-self-center"
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) setNavOpen(false);
+          }}
+        >
           <button
             type="button"
             className="menu-btn lg:hidden"
