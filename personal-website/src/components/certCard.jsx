@@ -1,29 +1,15 @@
-import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 
-const CertCard = ({ imcSrc, label, desc, href, classes, figureClassName, imgStyle }) => {
-  const [showFullText, setShowFullText] = useState(false);
-  const longPressTimeout = useRef(null); // Use ref to store the timeout
-
-  const handleTouchStart = () => {
-    longPressTimeout.current = setTimeout(() => {
-      setShowFullText(true);
-    }, 500); // 500ms long-press threshold
-  };
-
-  const handleTouchEnd = () => {
-    clearTimeout(longPressTimeout.current); // Clear the timeout
-    setShowFullText(false); // Reset expanded state
-  };
-
+// Certificate card. Titles are shown in full: truncating them made several
+// courses (e.g. the "Architecting with Google Kubernetes Engine" series)
+// look identical, and hover-to-expand doesn't exist on touch screens.
+const CertCard = ({ imcSrc, label, desc, href, classes = "", figureClassName, imgStyle }) => {
   const CardContent = (
     <div
       className={
-        "flex items-center gap-3 ring-2 ring-inset ring-zinc-50/10 rounded-2xl p-3 hover:bg-zinc-800 transition-colors group " +
+        "h-full flex items-center gap-3 ring-2 ring-inset ring-zinc-50/10 rounded-2xl p-3 hover:bg-zinc-800 transition-colors group " +
         classes
       }
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
     >
       <figure
         className={
@@ -31,29 +17,17 @@ const CertCard = ({ imcSrc, label, desc, href, classes, figureClassName, imgStyl
           "bg-zinc-800/50 rounded-lg overflow-hidden w-12 h-12 p-2 group-hover:bg-zinc-900 transition-colors flex-shrink-0"
         }
       >
-        <img src={imcSrc} alt={label} style={imgStyle} />
+        <img src={imcSrc} alt="" loading="lazy" decoding="async" style={imgStyle} />
       </figure>
-      <div className="flex-grow">
-        <h3
-          className={`text-white ${
-            showFullText ? "line-clamp-none" : "544:line-clamp-2 group-hover:line-clamp-none"
-          } transition-all`}
-        >
-          {label}
-        </h3>
-        <p
-          className={`text-zinc-400 text-sm ${
-            showFullText ? "line-clamp-none" : "544:line-clamp-1 group-hover:line-clamp-none"
-          } transition-all`}
-        >
-          {desc}
-        </p>
+      <div className="flex-grow min-w-0">
+        <h4 className="text-white break-words">{label}</h4>
+        <p className="text-zinc-400 text-sm break-words">{desc}</p>
       </div>
     </div>
   );
 
   return href ? (
-    <a href={href} target="_blank" rel="noopener noreferrer">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="block rounded-2xl">
       {CardContent}
     </a>
   ) : (

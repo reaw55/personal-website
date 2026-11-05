@@ -10,11 +10,11 @@ const Header = () => {
   const [navOpen, setNavOpen] = useState(false);
   return (
     <header
-      className="fixed top-0 left-0 w-full h-20 flex items-center 
-        z-40 bg-gradient-to-b from-zinc-900 to-zinc-900/0"
+      className="fixed top-0 left-0 w-full h-20 max-lg:landscape:h-16 flex items-center
+        z-40 bg-gradient-to-b from-zinc-900 via-zinc-900/90 via-60% to-zinc-900/0"
     >
-      <div className="max-w-screen-2xl w-full mx-auto px-4 
-      flex justify-between items-center lg:px-6 lg:grid lg:grid-cols-[1fr,3fr,1fr]">
+      {/* Same width as the page's .container so logo/button line up with content */}
+      <div className="container w-full flex justify-between items-center lg:grid lg:grid-cols-[1fr,3fr,1fr]">
         <a href="/" className="logo w-fit" aria-label="Reaw – back to top">
           <img src="/images/logo/logo-v1.svg" width={40} height={40} alt="" />
         </a>

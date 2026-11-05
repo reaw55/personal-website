@@ -40,7 +40,7 @@ function Skills() {
             </h3>
             <div className = "h-2"></div>
             
-            <div className ="grid gap-3 grid-cols-[repeat(auto-fill,_minmax(250px,_1fr))]">
+            <div className ="grid gap-3 grid-cols-[repeat(auto-fill,_minmax(min(250px,_100%),_1fr))]">
                 {
                     langItem.map(({imgSrc, label, desc}, key) => (
                         <LangCard key={key} imcSrc={imgSrc} label={label} desc={desc} classes="reveal-up" />

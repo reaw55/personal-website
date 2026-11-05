@@ -5,18 +5,20 @@ import PropTypes from "prop-types";
 
 // Inline link with an optional round/square logo in front of the text.
 // Colours are passed as CSS variables so hover *and* keyboard focus are
-// handled in CSS instead of JS mouse handlers.
+// handled in CSS instead of JS mouse handlers. All colours are tints of the
+// institutions' brand colours chosen to pass WCAG AA (4.5:1) on the card
+// background; hover goes lighter, since darker loses contrast on dark UI.
 const InlineLink = ({ href, color, hoverColor, logo, children }) => (
   <a
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    className="inline items-center mx-1 transition-colors text-[color:var(--link)] hover:text-[color:var(--link-hover)] focus-visible:text-[color:var(--link-hover)]"
+    className="inline transition-colors underline-offset-4 text-[color:var(--link)] hover:text-[color:var(--link-hover)] hover:underline focus-visible:text-[color:var(--link-hover)] focus-visible:underline"
     style={{ "--link": color, "--link-hover": hoverColor }}
   >
     {logo && (
       <span
-        className={`inline-block relative h-[1em] w-[1em] overflow-hidden align-baseline mx-1 bg-gray-200 ${logo.wrapperClassName}`}
+        className={`inline-block relative h-[1em] w-[1em] overflow-hidden align-baseline mr-1 bg-gray-200 ${logo.wrapperClassName}`}
       >
         <img
           src={logo.src}
@@ -48,11 +50,11 @@ const About = () => {
       <div className="container">
         <div className="bg-zinc-800/50 p-7 rounded-2xl md:p-12 reveal-up">
           <p className="text-zinc-300 mb-4 md:mb-8 md:text-xl ">
-            Hi! I’m Reaw, a recent graduate majoring in
+            Hi! I’m Reaw, a recent graduate majoring in{" "}
             <InlineLink
               href="http://www.ise.eng.chula.ac.th/academics/ice/info"
               color="#38BFE9"
-              hoverColor="#25809C"
+              hoverColor="#78D4F0"
               logo={{
                 src: "/images/logo/univ/icon-ICE.png",
                 wrapperClassName: "rounded-full translate-y-[15%]",
@@ -61,12 +63,12 @@ const About = () => {
               }}
             >
               Information and Communication Engineering
-            </InlineLink>
-            at the
+            </InlineLink>{" "}
+            at the{" "}
             <InlineLink
               href="http://www.ise.eng.chula.ac.th/"
-              color="#cc2c32"
-              hoverColor="#972126"
+              color="#DD6267"
+              hoverColor="#E78E92"
               logo={{
                 src: "/images/logo/univ/ISE_Logo.svg",
                 wrapperClassName: "rounded-full translate-y-[15%]",
@@ -75,11 +77,11 @@ const About = () => {
             >
               International School of Engineering
             </InlineLink>
-            ,
+            ,{" "}
             <InlineLink
               href="https://www.chula.ac.th/en/"
-              color="#ff6c94"
-              hoverColor="#af4a6c"
+              color="#FF6C94"
+              hoverColor="#FF9AB5"
               logo={{
                 src: "/images/logo/univ/Logo_of_Chulalongkorn_University.svg",
                 wrapperClassName: "rounded-full translate-y-[15%]",
@@ -88,11 +90,11 @@ const About = () => {
             >
               Chulalongkorn University
             </InlineLink>
-            . I have done an Exchange semester at
+            . I have done an exchange semester at{" "}
             <InlineLink
               href="https://www.titech.ac.jp/english"
-              color="#0080e1"
-              hoverColor="#005595"
+              color="#008CF5"
+              hoverColor="#43AEFF"
               logo={{
                 src: "/images/logo/univ/Tokyo_Institute_of_Technology_symbol.svg",
                 wrapperClassName: "rounded-sm translate-y-[20%]",
@@ -100,12 +102,12 @@ const About = () => {
               }}
             >
               Tokyo Institute of Technology
-            </InlineLink>
-            (now known as
+            </InlineLink>{" "}
+            (now known as{" "}
             <InlineLink
               href="https://www.isct.ac.jp/en"
-              color="#2665e8"
-              hoverColor="#143476"
+              color="#5486ED"
+              hoverColor="#82A7F2"
               logo={{
                 src: "/images/logo/univ/Institute_of_Science_Tokyo_logo_basic.svg",
                 wrapperClassName: "rounded-sm translate-y-[10%]",
@@ -115,11 +117,11 @@ const About = () => {
             >
               Institute of Science Tokyo
             </InlineLink>
-            ) under the
+            ) under the{" "}
             <InlineLink
               href="https://www.titech.ac.jp/english/international-student-exchange/prospective-students/non-degree/acap"
-              color="#e0af0a"
-              hoverColor="#947407"
+              color="#E0AF0A"
+              hoverColor="#F5C523"
             >
               ACAP program
             </InlineLink>

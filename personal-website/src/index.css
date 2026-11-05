@@ -8,6 +8,25 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Custom scrollbar for WebKit/Blink (moved here from index.html so the page
+   has no inline <style>, which keeps a Content-Security-Policy simple) */
+html::-webkit-scrollbar {
+  width: 8px;
+}
+
+html::-webkit-scrollbar-track {
+  background-color: #2d2d2d;
+}
+
+html::-webkit-scrollbar-thumb {
+  background-color: #6b7280;
+  border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
 body {
   @apply bg-zinc-900 text-zinc-50 
 }
@@ -35,7 +54,7 @@ body {
 /* utilities */
 
 .material-symbols-rounded {
-  @apply w-[1em] h-[1em] overflow-hidden;
+  @apply w-[1em] h-[1em] overflow-hidden shrink-0;
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0,"opsz" 24;
 }
 
@@ -51,6 +70,27 @@ body {
   @apply w-full h-full object-cover;
 }
 
+/* Hero portrait: 4:5 frame that never exceeds the screen height */
+.hero-portrait {
+  aspect-ratio: 4 / 5;
+  width: min(100%, 480px);
+}
+
+@media (min-width: 1024px) {
+  .hero-portrait {
+    width: min(100%, 480px, max(240px, calc((100vh - 9.5rem) * 0.8)));
+    width: min(100%, 480px, max(240px, calc((100svh - 9.5rem) * 0.8)));
+  }
+}
+
+/* Landscape phones / small landscape windows: sits beside the text */
+@media (max-width: 1023.98px) and (orientation: landscape) {
+  .hero-portrait {
+    width: min(480px, max(150px, calc((100vh - 6.5rem) * 0.8)));
+    width: min(480px, max(150px, calc((100svh - 6.5rem) * 0.8)));
+  }
+}
+
 .img-optimized {
   image-rendering: auto; /* Default for smooth scaling */
   -webkit-transform: translateZ(0); /* Forces GPU rendering */
@@ -62,6 +102,17 @@ body {
 
 .reveal-up {
   @apply translate-y-20 opacity-0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* No scroll-reveal animation: show content immediately */
+  .reveal-up {
+    @apply translate-y-0 opacity-100;
+  }
 }
 
 /* components */
@@ -93,7 +144,7 @@ body {
 
 /* button */
 .btn {
-  @apply max-w-max h-9 flex items-center gap-2 px-4 rounded-xl font-medium text-sm ring-1 ring-zinc-50/5 ring-inset transition-[background-color]
+  @apply max-w-max h-9 flex items-center gap-2 px-4 rounded-xl font-medium text-sm whitespace-nowrap ring-1 ring-zinc-50/5 ring-inset transition-[background-color]
 }
 
 .btn-secondary {

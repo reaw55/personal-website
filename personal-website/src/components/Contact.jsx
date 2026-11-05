@@ -115,7 +115,7 @@ function Contact() {
           <h2 className="headline-2 lg:max-w-[12ch] reveal-up">
             Let&apos;s Connect
           </h2>
-          <p className="text-zinc-400 mt-3 mb-8 max-w-[50ch] lg:max-w-[30ch] reveal-up">
+          <p className="text-zinc-400 mt-3 mb-8 max-w-[50ch] lg:max-w-[42ch] reveal-up">
             I am passionate about utilizing technology to create practical and
             sustainable solutions to modern challenges. My research explores
             energy optimization and the integration of IoT and AI to drive
@@ -156,6 +156,7 @@ function Contact() {
                 name="name"
                 id="name"
                 autoComplete="name"
+                maxLength={100}
                 required
                 placeholder="John Doe"
                 className="text-field reveal-up"
@@ -171,6 +172,7 @@ function Contact() {
                 name="email"
                 id="email"
                 autoComplete="email"
+                maxLength={254}
                 required
                 placeholder="contact@example.dev"
                 className="text-field reveal-up"
@@ -185,11 +187,23 @@ function Contact() {
             <textarea
               name="message"
               id="message"
+              maxLength={5000}
               required
               placeholder="Hi!"
               className="text-field resize-y min-h-32 max-h-80 reveal-up"
             ></textarea>
           </div>
+
+          {/* Honeypot for Getform spam filtering: humans never see or fill it,
+              bots that auto-fill every field get their submission discarded. */}
+          <input
+            type="text"
+            name="_gotcha"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            className="hidden"
+          />
 
           <button
             type="submit"
