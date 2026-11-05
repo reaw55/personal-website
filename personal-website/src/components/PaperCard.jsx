@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 
-const PaperCard = ({ imgSrc, title, description, tags = [], paperLink, classes }) => {
+const PaperCard = ({ imgSrc, title, description, tags = [], paperLink, classes = "" }) => {
   return (
-    <div className={"flex p-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700/60 ring-1 ring-inset ring-zinc-50/5 transition-colors " + classes}>
+    <div className={"relative flex p-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700/60 ring-1 ring-inset ring-zinc-50/5 transition-colors " + classes}>
       {imgSrc && (
         <figure className="img-box w-1/3 rounded-lg mb-4 flex-shrink-0">
           <img src={imgSrc} alt={title} loading='lazy' className="img-cover rounded-lg" />
@@ -21,12 +21,13 @@ const PaperCard = ({ imgSrc, title, description, tags = [], paperLink, classes }
           </div>
         </div>
       </div>
-      <a href={paperLink} target="_blank" rel="noopener noreferrer" className="absolute bottom-4 right-4 w-11 h-11 rounded-lg grid place-items-center bg-amber-400 text-zinc-950">
+      <a href={paperLink} target="_blank" rel="noopener noreferrer" aria-label={`Read paper: ${title}`} className="absolute z-10 bottom-4 right-4 w-11 h-11 rounded-lg grid place-items-center bg-amber-400 text-zinc-950">
         <span className="material-symbols-rounded" aria-hidden="true">
           arrow_outward
         </span>
       </a>
-      <a href={paperLink} target='_blank' className="absolute inset-0"></a>
+      {/* Makes the whole card clickable; the arrow link above is the accessible one */}
+      <a href={paperLink} target="_blank" rel="noopener noreferrer" className="absolute inset-0" aria-hidden="true" tabIndex={-1}></a>
     </div>
   );
 };

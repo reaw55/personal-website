@@ -1,27 +1,7 @@
 //skills section
 
 //components
-import SkillCard from './SkillCard';
 import LangCard from './LangCard';
-
-const skillItem = [
-    {
-      imgSrc: '/images/skills/lang/thailand.png',
-      label: 'Thai',
-      desc: 'native'
-    },
-    {
-      imgSrc: '/images/skills/lang/uk.png',
-      label: 'English',
-      desc: 'IELTS 8.0'
-    },
-    {
-      imgSrc: '/images/skills/lang/japan.png',
-      label: 'Japanese',
-      desc: 'N4'
-    },
-  ];
-
 
 const langItem = [
     {

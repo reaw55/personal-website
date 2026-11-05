@@ -29,7 +29,7 @@ export const certRecognitionList = [
   },
   {
     label: "AGU program 2024",
-    desc: "Chulalongkorn University University in collaboration with Aoyama Gakuin University, 2024",
+    desc: "Chulalongkorn University in collaboration with Aoyama Gakuin University, 2024",
     href: "https://nc.reaw.me/s/32FXSKfKDtqLyep",
     imgSrc: "/images/logo/univ/chula-eng-and-agu.svg",
     imgStyle: {
@@ -41,7 +41,7 @@ export const certRecognitionList = [
     },
   },
   {
-    label: "Gobal Awareness for Technology Implementation in the Solving of Social Issues 2023",
+    label: "Global Awareness for Technology Implementation in the Solving of Social Issues 2023",
     desc: "Chulalongkorn University in collaboration with Tokyo Institute of Technology, 2023",
     href: "https://nc.reaw.me/s/y8NeMNyHHwpS3dB",
     imgSrc: "/images/logo/univ/chula-eng-and-tokyo-tech.svg",
@@ -55,7 +55,7 @@ export const certRecognitionList = [
   },
   {
     label: "Technical Staff (Project Advisor) for Satit Hackathon 2023",
-    desc: " Chulalongkorn University Demonstration School,2023",
+    desc: "Chulalongkorn University Demonstration School, 2023",
     href: "",
     imgSrc: "/images/certs/CUDLogo.svg",
     imgStyle: {

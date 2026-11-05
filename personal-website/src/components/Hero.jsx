@@ -25,14 +25,14 @@ const Hero = () => {
               Available for work
             </div>
           </div> */}
-          <h2 className="headline-1 max-w-[15ch] sm:max-w-20ch lg:max-w-[15ch] mt-5 mb-8 lg:mb-10 break-words max-sm:text-44 max-xs:text-40"
+          <h1 className="headline-1 max-w-[15ch] sm:max-w-[20ch] lg:max-w-[15ch] mt-5 mb-8 lg:mb-10 break-words max-sm:text-44 max-xs:text-40"
           style={{ lineHeight: '1.2', paddingBottom: '0.1em' }}
           >
             Kritchavit Thippayajindakul
-          </h2>
+          </h1>
 
           <div className="flex items-center gap-3">
-            <ButtonPrimary label="Download CV" icon="download" href="https://nc.reaw.me/s/eBrBqkQebgQjJGk" />
+            <ButtonPrimary label="Download CV" icon="download" href="https://nc.reaw.me/s/eBrBqkQebgQjJGk" target="_blank" />
             <ButtonOutline label="Scroll down" icon="arrow_downward" href="#about" />
           </div>
         </div>
@@ -41,10 +41,13 @@ const Hero = () => {
         <div className=" lg:block justify-center sm:ml-2 max-lg:flex-row max-lg:items-center max-lg:justify-center">
           <figure className="w-full max-w-[480px] ml-auto bg-gradient-to-t from-amber-400 via-25% via-amber-400/40 to-65% rounded-[60px] overflow-hidden  aspect-[4/5] ">
             <img
-              src="images/protait/h-p-c-2.png"
-              alt="protrait banner"
-              width={656}
-              height={800}
+              src="/images/protait/h-p-c-2.png"
+              alt="Portrait of Kritchavit Thippayajindakul"
+              width={565}
+              height={844}
+              // React 18 only passes this through in lowercase (React 19: fetchPriority)
+              // eslint-disable-next-line react/no-unknown-property
+              fetchpriority="high"
               className="w-full"
             />
           </figure>

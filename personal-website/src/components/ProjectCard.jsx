@@ -29,7 +29,7 @@ const ProjectCard = ({imgSrc, title, tags, projectLink, classes}) => {
                 </div>
             </div>
             
-            <a href={projectLink} target='_blank' className="absolute inset-0"></a>
+            <a href={projectLink} target="_blank" rel="noopener noreferrer" aria-label={title} className="absolute inset-0"></a>
             
 
         </div>

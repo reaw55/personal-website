@@ -4,7 +4,7 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 
-const Navbar = ({ navOpen }) => {
+const Navbar = ({ navOpen, onNavigate }) => {
   const lastActiveLink = useRef();
   const activeBox = useRef();
   const [isLargeScreen, setIsLargeScreen] = useState(false);
@@ -77,6 +77,9 @@ const Navbar = ({ navOpen }) => {
       activeBox.current.style.width = `${event.target.offsetWidth}px`;
       activeBox.current.style.height = `${event.target.offsetHeight}px`;
     }
+
+    // Close the mobile menu once a destination has been chosen
+    onNavigate?.();
   };
 
   // Handle scroll to update active link
@@ -122,7 +125,7 @@ const Navbar = ({ navOpen }) => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     // Call handler once to set the initial active link
     handleScroll();
 
@@ -132,7 +135,7 @@ const Navbar = ({ navOpen }) => {
   }, [isLargeScreen, navItems]);
 
   return (
-    <nav className={`navbar ${navOpen ? 'active' : ''}`}>
+    <nav id="primary-navigation" aria-label="Primary" className={`navbar ${navOpen ? 'active' : ''}`}>
       {navItems.map(({ label, link, className, ref }, key) => (
         <a
           href={link}
@@ -151,6 +154,7 @@ const Navbar = ({ navOpen }) => {
 
 Navbar.propTypes = {
   navOpen: PropTypes.bool.isRequired,
+  onNavigate: PropTypes.func,
 };
 
 export default Navbar;

@@ -76,7 +76,7 @@ const Footer = () => {
               <ul className="">
                 {sitemap.map(({ label, href }, key) => (
                   <li key={key}>
-                    <a href={href} className="block text-sm text-zinc-400 py-1 transistion-colors hover:text-zinc-200 reveal-up">{label}</a>
+                    <a href={href} className="block text-sm text-zinc-400 py-1 transition-colors hover:text-zinc-200 reveal-up">{label}</a>
                   </li>
                 ))}
               </ul>
@@ -90,7 +90,7 @@ const Footer = () => {
             <ul className="">
               {socials.map(({ label, href }, key) => (
                 <li key={key}>
-                  <a href={href} target="_blank" className="block text-sm text-zinc-400 py-1 transistion-colors hover:text-zinc-200 reveal-up">{label}</a>
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="block text-sm text-zinc-400 py-1 transition-colors hover:text-zinc-200 reveal-up">{label}</a>
                 </li>
               ))}
             </ul>
@@ -101,12 +101,12 @@ const Footer = () => {
         </div>
 
         <div className="flex items-center justify-between pt-10 mb-8">
-          <a href="/" className="logo reveal-up">
-            <img src="images/logo/logo-v1.svg" alt="logo" width={40} height={40} className="" />
+          <a href="/" className="logo reveal-up" aria-label="Reaw – back to top">
+            <img src="/images/logo/logo-v1.svg" alt="" width={40} height={40} />
           </a>
 
           <p className="text-zinc-500 text-sm reveal-up">
-            &copy; 2024 <span className="text-zinc-200 ">Reaw </span>
+            &copy; {new Date().getFullYear()} <span className="text-zinc-200 ">Reaw </span>
           </p>
         </div>
       </div>
