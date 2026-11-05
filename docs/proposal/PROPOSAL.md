@@ -19,6 +19,37 @@ ran out of time):
 
 ---
 
+## Key evidence from the research
+
+All figures are approx. and come from news coverage; verify them with
+TAT/MOTS before external use.
+
+- **Spending is highly concentrated.** In 2025 the top 5 provinces (Bangkok,
+  Phuket, Chon Buri, Surat Thani, Chiang Mai) took about **70%** of tourism
+  revenue, and the top 10 about 81%. The other 67 provinces shared about 19%.
+  Source: [research-market.md](research-market.md).
+- **Demand is soft, and there is policy support.** Foreign arrivals were
+  about 33.0M in 2025 (down about 7% on 2024), and the 2026 targets were cut.
+  The government ran tax deductions for secondary-city travel in 2024 and
+  2025 (55 provinces; 1.5× multiplier, cap about 30,000 THB), but uptake was
+  reported as weak. That is a distribution gap this product can fill.
+- **Incumbent commissions are high:** about 20–32% (GetYourGuide 20–30%,
+  Withlocals 32%, Viator about 20–30%). Our 10–15% is a clear advantage for
+  local partners. Source: [research-pricing.md](research-pricing.md).
+- **Community-based tourism lacks reach.** About 200 community tourism
+  groups reportedly lack a reliable platform to reach customers.
+  Homestays cost about 500–900 THB a night, and community trips about
+  800–4,000 THB per person per day. Sources:
+  [research-pricing.md](research-pricing.md) and
+  [research-destinations-south-central-east.md](research-destinations-south-central-east.md).
+- **Planner pricing has a ceiling.** Global trip-planner apps charge about
+  $40–50 a year (Wanderlog, TripIt, Layla). Our Pro tier at about 990 THB a
+  year (about $28) sits below them.
+- **Guiding needs a licence.** Only Thai nationals with a Department of
+  Tourism licence may guide (Tourism Business and Guide Act B.E. 2551), so
+  a "Licensed Thai guide" badge is both a compliance requirement and a trust
+  signal.
+
 ## 1. Problem
 
 - Visitors cluster in a few hotspots (Bangkok, Phuket, Chiang Mai, Pattaya).
