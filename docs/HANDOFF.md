@@ -303,3 +303,19 @@ These are content or taste calls, so they weren't changed:
 - [ ] Leak checks from the SOP (section 7) print nothing.
 - [ ] Owner approved; PR opened from `claude/laughing-shannon-vl71kr` to
       `main`.
+
+---
+
+## Added later: audit and proposal
+
+- **Full audit:** [`audit/AUDIT.md`](audit/AUDIT.md) is the index for the
+  security, accessibility, performance/SEO and code-quality/design section
+  files. Turn their "Open" findings into tasks.
+- **Business proposal:**
+  [`proposal/PROPOSAL.md`](proposal/PROPOSAL.md) is a trip-planning service
+  for Thailand's lesser-known destinations, based on the owner's NIC-NIDA
+  2023 paper. Research appendices sit in the same folder.
+- These were produced in a short time box by parallel research agents.
+  **If a section or research file is missing or marked incomplete, re-run
+  that piece.** Treat every price and statistic marked "approx." as
+  unverified until you've checked its source.
