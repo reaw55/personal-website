@@ -53,3 +53,16 @@ The code is small and readable, and `npx eslint .` reports **0 problems**. The m
 - Every component declares PropTypes, and `prop-types` is listed in `package.json`.
 - The Header menu button has `aria-expanded`, `aria-controls` and a label that changes with its state. The mobile menu closes after a link is tapped (`onNavigate`).
 - `StrictMode` is enabled (`main.jsx:8`). `package.json` declares Node 20.19 or later in `engines`.
+
+## Update, 2026-11-13
+
+Fixed on the branch after this audit:
+
+- **UI-3 (part):** `LangCard` titles are now `h4`, so they no longer repeat
+  the `h3` level of the "Languages" heading above them.
+- **UI-4 (part):** the spacer `div` in `Skills.jsx` is gone; the heading
+  margin carries the spacing.
+- **CQ dead code (part):** the commented-out placeholder paragraph in
+  `Skills.jsx` was removed.
+
+Everything else in the tables above is still open.

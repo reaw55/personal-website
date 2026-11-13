@@ -1,18 +1,25 @@
 // Desc: Header component for the website
 
 //nodes modules
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // components
 import Navbar from './Navbar';
 
 const Header = () => {
   const [navOpen, setNavOpen] = useState(false);
+  const menuButton = useRef(null);
 
-  // Escape closes the mobile menu (WCAG 2.1.2 / audit A11Y-2)
+  // Escape closes the mobile menu and hands focus back to the menu button,
+  // so keyboard focus is never left on a link inside the hidden menu
+  // (audit A11Y-2).
   useEffect(() => {
     if (!navOpen) return;
-    const onKey = (e) => e.key === 'Escape' && setNavOpen(false);
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      menuButton.current?.focus();
+      setNavOpen(false);
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [navOpen]);
@@ -34,6 +41,7 @@ const Header = () => {
           }}
         >
           <button
+            ref={menuButton}
             type="button"
             className="menu-btn lg:hidden"
             onClick={() => setNavOpen((prev) => !prev)}

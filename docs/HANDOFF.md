@@ -316,6 +316,23 @@ These are content or taste calls, so they weren't changed:
   for Thailand's lesser-known destinations, based on the owner's NIC-NIDA
   2023 paper. Research appendices sit in the same folder.
 - These were produced in a short time box by parallel research agents.
-  **If a section or research file is missing or marked incomplete, re-run
-  that piece.** Treat every price and statistic marked "approx." as
-  unverified until you've checked its source.
+  All section and research files are present. Treat every price and
+  statistic marked "approx." as unverified until you've checked its source.
+- **Task list:** [`TODO.md`](TODO.md) is the single checklist of everything
+  still open, grouped by effort.
+
+## Added later: recheck on 2026-11-13
+
+A full recheck re-ran a clean install, lint, build, dependency audit, the
+17-size layout sweep and the security-policy test. All passed. Changes made
+after the main "Already done" list above:
+
+- The mobile menu closes on Escape, on tapping outside it, and when
+  keyboard focus leaves it. Escape returns focus to the menu button.
+- Inactive nav links were brightened to meet the 4.5:1 contrast minimum.
+- The hero image is preloaded from `index.html`.
+- Language cards use `h4` under the "Languages" `h3`.
+- The proposal was revised to v0.2: it now has a places-and-prices table,
+  a competition section, consistent commissions (12% partners, 15% guides)
+  and example trips built from researched prices.
+- A root `README.md` points to the app folder and the docs.

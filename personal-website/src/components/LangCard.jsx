@@ -15,7 +15,7 @@ function LangCard({
             <img src={imcSrc} alt={label} width={60} height={60} />
         </figure>
         <div>
-            <h3>{label}</h3>
+            <h4>{label}</h4>
 
             <p className="text-zinc-400 text-sm">{desc}</p>
         </div>

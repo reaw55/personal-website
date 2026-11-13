@@ -31,14 +31,10 @@ function Skills() {
             Skills 
             </h2>
 
-            {/* <p className="text-zinc-400 mt-3 mb-8 max-w-[50ch] reveal-up">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            </p> */}
             
-            <h3 className="col-span-full text-xl font-semibold mt-6 mb-2 reveal-up">
+            <h3 className="text-xl font-semibold mt-6 mb-4 reveal-up">
             Languages 
             </h3>
-            <div className = "h-2"></div>
             
             <div className ="grid gap-3 grid-cols-[repeat(auto-fill,_minmax(min(250px,_100%),_1fr))]">
                 {

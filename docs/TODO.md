@@ -40,6 +40,7 @@ Details for each item are in [HANDOFF.md](HANDOFF.md),
 - [ ] Rename `imcSrc`→`imgSrc`, `Cousera`→`Coursera`, `protait`→`portrait`,
       and give components PascalCase file names (CQ-7/8)
 - [ ] Design tokens in tailwind.config.js (colours, radii) (UI-1..6)
+- [ ] Width/height and lazy loading on the remaining logos and flags (PERF-4/5)
 
 ## Content decisions
 - [ ] Skills section: add technical skills, or rename it to "Languages"
@@ -50,5 +51,10 @@ Details for each item are in [HANDOFF.md](HANDOFF.md),
 ## Proposal
 - [ ] Verify every "approx." figure against TAT/MOTS and live quotes
 - [ ] Confirm the official list of 55 secondary provinces and the 2026 tax incentive
+- [ ] Get current guide day rates and homestay prices in Nan and Amphawa
+      directly from operators
+- [ ] Find the commission terms of Klook, TakeMeTour and Local Alike
 - [ ] Interview 10 partners and 10 travellers per pilot province
-- [ ] Choose 2 pilot provinces and a licensed tour-operator partner
+- [ ] Ask two provincial tourism offices whether they would pay for a campaign
+- [ ] Confirm the recommended pilot provinces (Nan and Samut Songkhram) and
+      find a licensed tour-operator partner

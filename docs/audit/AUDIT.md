@@ -13,8 +13,13 @@ The audit was split into four parallel reviews, one file each:
 | Performance and SEO | [performance-seo.md](performance-seo.md) |
 | Code quality and UI consistency | [code-quality-design.md](code-quality-design.md) |
 
-A section file that is missing means that review didn't finish within the
-time box. Re-run it with the same scope.
+All four reviews finished. Each ran under a short time limit, so treat the
+"Verified OK" lists as spot checks, not proof.
+
+A recheck on 2026-11-13 re-ran the build, lint, dependency audit, the
+17-size layout sweep and the security-policy test, and tested the mobile
+menu by mouse, touch and keyboard. It found and fixed one gap: Escape left
+keyboard focus on a hidden menu link. Focus now returns to the menu button.
 
 ## Top open findings (from the section files)
 
@@ -23,7 +28,7 @@ time box. Re-run it with the same scope.
 | High | SEC-1/2 | The deleted Discord webhook and the Google Apps Script URL are still on `origin/main`, and in git history | Confirm the webhook is revoked; archive the Apps Script deployment; merge this branch |
 | High | SEO-1 | All content renders client-side; without JS there is only the `<noscript>` text | Prerender at build time (the site is static) |
 | High | CQ-1/2 | Navbar changes the DOM directly and runs layout reads on every scroll event | Keep the active section in React state, driven by an `IntersectionObserver` |
-| ~~Medium~~ Fixed | A11Y-1/2/3 | Mobile menu focus-out/Escape, nav link contrast | Fixed in commit 8a537f9 |
+| ~~Medium~~ Fixed | A11Y-1/2/3 | Mobile menu focus-out/Escape, nav link contrast | Fixed and re-tested in a browser (mouse, touch, keyboard) |
 | Medium | SEC-3 | No security headers; the host is unknown | Apply the HANDOFF Task 2 header set (Report-Only first) |
 | Medium | PERF-1/2 | ~~Hero image only found after the JS runs~~ (fixed: preload); the Google Fonts CSS still blocks rendering | Self-host Inter; use inline SVG icons |
 | Medium | SEO-2/3/4 | No canonical, `og:image`, robots, sitemap or JSON-LD Person | HANDOFF Task 3, plus a JSON-LD Person block |
