@@ -1,338 +1,292 @@
-# Hand-off: personal-website → local Claude agent
+# Hand-off: take over and put the site on its infrastructure
+
+**For:** a local Claude agent (or a person) working on the owner's machine,
+with access to the hosting, the domain, Matomo, Getform, Discord and
+Cloudflare.
 
 **Repo:** `reaw55/personal-website` (**public**)
-**Branch:** `claude/laughing-shannon-vl71kr` (not merged, no PR yet)
-**App folder:** `personal-website/` (React 18 + Vite 8 + Tailwind 3)
+**Branch:** `claude/laughing-shannon-vl71kr`. It is not merged and has no
+pull request yet.
 
-A cloud session did a security, best-practice, design and responsiveness
-review and fixed everything it could. The tasks below are left for you
-because they need things the cloud session could not reach:
-
-- the live site and its hosting
-- `analytics.reaw.me` (Matomo)
-- the Getform dashboard
-- Discord and Cloudflare accounts
-- `www.ise.eng.chula.ac.th`
-
-Work through them in order and **ask the owner** whenever a step says so.
+A cloud session reviewed and fixed the site, then packaged everything the
+infrastructure work needs into `infra/`. That session could not reach the
+live site or any of the owner's accounts, so nothing in `infra/` has been
+applied. Your job is to apply it, in the order below.
 
 ---
 
-## Ground rules
+## 1. What is in the package
 
-- **The repo is public.** Never commit secrets: webhook URLs, API keys or
-  Turnstile secrets. Never put them in `VITE_*` variables, because those end
-  up in the public JS bundle.
+| Path | What it does | How it was tested |
+| --- | --- | --- |
+| `infra/scripts/set-domain.mjs` | Writes the site's address into the page (canonical link, link-preview image, a "Person" block for search engines) and creates `robots.txt` and `sitemap.xml` | Run twice with test domains; the second run cleanly replaced the first. The page with those tags passed every check |
+| `infra/headers/policy.mjs` | The one definition of the security headers and caching rules | The same policy is what `verify` tests |
+| `infra/headers/generate.mjs` | Turns that policy into config for Cloudflare Pages, Netlify, Vercel, nginx or Caddy | nginx: served the built site through real nginx 1.24 with the generated config; all 26 checks passed in both report-only and enforcing mode. Cloudflare, Netlify and Vercel output was generated and format-checked but not deployed. Caddy output was not run |
+| `infra/contact-relay/` | Cloudflare Worker that forwards the contact form to Discord, so the webhook stays secret | 16 unit tests, plus an end-to-end run: site form → relay → a stand-in Discord server. Never run on Cloudflare or against real Discord |
+| `infra/analytics/` | Two ready replacements for the analytics file: tracker only, or Tag Manager only | Syntax-checked; the tracker code matches the live file. Not run against Matomo |
+| `infra/github/` | CI workflow (lint, build, relay tests) and Dependabot config, inactive until copied to `.github/` | YAML syntax-checked. Never run on GitHub |
+| `infra/verify/verify.cjs` | One command that checks layout at 17 screen sizes, the mobile menu, links, images, the security policy and, on a real address, the server's headers | Passes on the current build. A deliberately broken policy made it fail, as it should |
+
+The website itself already supports the relay: `Contact.jsx` posts to it
+when `VITE_CONTACT_ENDPOINT` is set at build time, and otherwise posts to
+Getform exactly as before. Both paths were tested in a browser.
+
+`infra/` is not part of the built site. Only `personal-website/dist/` is
+deployed.
+
+## 2. Ground rules
+
+- **The repo is public.** Never commit a webhook URL, API key or other
+  secret, and never put one in a `VITE_*` variable: Vite copies those into
+  the public JavaScript.
 - **Ask the owner before you:**
-  - deploy
-  - change DNS
-  - change Matomo or Getform settings
-  - delete anything on a server
-  - open or merge a PR
-- **Before every push**, from `personal-website/`: run `npm ci`, then
-  `npm run lint`, then `npm run build`. Then run `npm run preview` and
-  check the page in a browser at desktop and phone widths.
-- Node **20.19+** is required (Vite 8). This is declared in `package.json`
-  `engines`.
+  - deploy anything;
+  - change DNS;
+  - change Matomo or Getform settings;
+  - delete anything on a server;
+  - turn on CI or Dependabot;
+  - open or merge a pull request.
+- **Before every push,** from `personal-website/`, run `npm run lint` and
+  `npm run build`, then run the checks in step 0.
+- Node **20.19 or newer** is required (Vite 8).
+
+## 3. Questions for the owner
+
+Get these answers first; most steps depend on them.
+
+1. Which host serves the site: Cloudflare Pages, Netlify, Vercel, GitHub
+   Pages, or your own server with nginx or Caddy?
+2. What is the site's main address (for example `https://reaw.dev`)? Is
+   there a `www.` version too?
+3. Does the Matomo Tag Manager container (`CZOdWKhK`) have a Matomo
+   Analytics tag in it, or is it empty?
+4. Should analytics run without cookies?
+5. Do you want Discord notifications for the contact form? If so, which
+   private channel, and is there a Cloudflare account to deploy to?
+6. Should CI and Dependabot be switched on?
+7. Is the old Google Apps Script still needed? Its address is in the
+   public git history.
 
 ---
 
-## Already done on this branch (don't redo)
+## 4. Runbook
 
-**Security**
-- Removed the unused `ContactForm.jsx`, which held a Discord webhook URL.
-  The owner has already deleted that webhook in Discord.
-- Added `rel="noopener noreferrer"` to every link that opens in a new tab;
-  the ESLint rule for this is back on.
-- Matomo now loads over `https` from `public/js/matomo.js`; there are no
-  inline scripts or styles left.
-- `npm audit` reports **0 vulnerabilities**.
-- Added a `_gotcha` honeypot field and input length limits to the contact
-  form.
+### Step 0: Set up and get a clean baseline
 
-**Build**
-- Missing dependencies are now declared (`tailwindcss`,
-  `tailwind-scrollbar`, `autoprefixer`, `postcss`, `prop-types`).
-- PostCSS config fixed, so Autoprefixer actually runs.
-- Upgraded Vite 5 → 8 and `@vitejs/plugin-react` 4 → 6.
-
-**Bugs**
-- `target="self"` opened new tabs ("Scroll down", "For Inquiries").
-- The mobile menu didn't close after tapping a link.
-- Image paths used backslashes.
-- About-section link colours were changed by JS hover handlers.
-
-**Accessibility**
-- Icon-only links and the menu button now have accessible names, plus
-  `aria-expanded` on the menu button.
-- The hero name is the page `<h1>`.
-- Duplicate card-overlay links are hidden from screen readers and keyboard
-  focus.
-- Text contrast now meets WCAG AA: footer text and three About links got
-  lighter tints of their brand colours.
-- "Reduce motion" is respected: no scroll-reveal animation and no smooth
-  scrolling.
-
-**Performance**
-- Icon font subset to 6 icons (~544 KB → ~2 KB); unused Roboto removed.
-- Images converted to WebP: hero 659 → 53 KB, awards about 1 MB → 255 KB.
-  The RoboCup photographer credit is kept in its EXIF data.
-- Deleted about 12.5 MB of unused images from `public/`. To recover any
-  of them: `git checkout 7f4e233 -- personal-website/public/images/<path>`.
-
-**Responsive and design**
-- Hero:
-  - fits on one screen on landscape phones (side-by-side layout) and on
-    short laptops (photo capped to the screen height);
-  - the photo is centred on tablets.
-- Grids never force a column wider than the screen (280 px foldables work).
-- Header aligned with the content width on ultrawide screens; it is more
-  opaque, so content no longer shows through behind the logo.
-- Certificate titles shown in full: truncation made the Kubernetes courses
-  look like duplicates.
-- Consistent spacing between certificate groups.
-- Fixed the stray space before punctuation in About.
-- Typos fixed.
-- Verified with no sideways scrolling or clipped text at: 280×653,
-  320×568, 360×740, 390×844, 430×932, 568×320, 667×375, 844×390,
-  768×1024, 1024×768, 1024×1366, 1280×600, 1366×768, 1440×900, 1920×1080,
-  2560×1080 and 3440×1440.
-
-**SEO**
-- Meta description, `theme-color`, Open Graph title/description,
-  `noscript` message, and a ready-made 1200×630 preview image at
-  `public/og-image.jpg`.
-
----
-
-## Task 1: Find out where the site is hosted and its domain
-
-Ask the owner:
-
-1. Which host serves the site? (Cloudflare Pages, Netlify, Vercel, GitHub
-   Pages, or their own server with nginx or Caddy?)
-2. Which URL is canonical? (`reaw.me`, `reaw.dev`, `www.`?)
-3. Does the deploy build run on Node 20.19 or newer? If not, raise it to
-   Node 22 LTS in the host's settings.
-
-Build settings for any host: base directory `personal-website`, build
-command `npm run build`, output directory `dist`.
-
-Tasks 2, 3 and the Discord SOP depend on these answers.
-
-## Task 2: Security headers
-
-These must be set by the host as HTTP headers; meta tags can't do this.
-This Content-Security-Policy was tested against the built site with
-Playwright and caused **zero violations**:
-
-```
-Content-Security-Policy: default-src 'self'; script-src 'self' https://analytics.reaw.me; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://analytics.reaw.me; connect-src 'self' https://analytics.reaw.me; form-action https://getform.io; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests
-Strict-Transport-Security: max-age=31536000
-X-Content-Type-Options: nosniff
-Referrer-Policy: strict-origin-when-cross-origin
-Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-X-Frame-Options: DENY
-Cross-Origin-Opener-Policy: same-origin
+```bash
+git fetch origin && git checkout claude/laughing-shannon-vl71kr
 ```
 
-Steps:
+From `personal-website/`:
 
-1. Ship the CSP first as **`Content-Security-Policy-Report-Only`** (same
-   value). Load the live site with DevTools open, browse every section and
-   submit the contact form, then check the console for violations. The
-   cloud session couldn't load the Matomo Tag Manager container. If it
-   contains custom HTML or JS tags, they will need additions, such as a
-   script hash or the extra host.
-2. Once the console is clean, switch the header to the enforcing
-   `Content-Security-Policy`.
-3. Add `includeSubDomains` to HSTS only if **every** subdomain is
-   HTTPS-only (`nc.`, `analytics.` and so on). Confirm with the owner.
-4. Caching: `/assets/*` gets `Cache-Control: public, max-age=31536000,
-   immutable` (the filenames are hashed). `index.html` gets
-   `Cache-Control: no-cache`.
-
-Where the headers go:
-
-- **Cloudflare Pages or Netlify:** create `personal-website/public/_headers`:
-  ```
-  /*
-    Content-Security-Policy: <value above>
-    Strict-Transport-Security: max-age=31536000
-    X-Content-Type-Options: nosniff
-    Referrer-Policy: strict-origin-when-cross-origin
-    Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-    X-Frame-Options: DENY
-    Cross-Origin-Opener-Policy: same-origin
-  /assets/*
-    Cache-Control: public, max-age=31536000, immutable
-  ```
-- **Vercel:** use `headers` in `personal-website/vercel.json`.
-- **nginx:** use `add_header <Name> "<value>" always;` in the server block.
-- **Caddy:** use a `header { … }` block.
-- **GitHub Pages:** it can't set custom headers. Suggest putting
-  Cloudflare in front or moving hosts, and ask the owner.
-
-Verify with `curl -sI https://<domain>/`, and optionally
-securityheaders.com.
-
-## Task 3: Domain-dependent SEO
-
-Once you have the domain, add the following to `personal-website/index.html`
-next to the existing Open Graph tags, and change the existing
-`twitter:card` value to `summary_large_image`:
-
-```html
-<link rel="canonical" href="https://SITE/" />
-<meta property="og:url" content="https://SITE/" />
-<meta property="og:image" content="https://SITE/og-image.jpg" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Kritchavit (Reaw) Thippayajindakul – portfolio" />
+```bash
+npm ci && npm run lint && npm run build
 ```
 
-Then create:
+Install the checker once, from `infra/verify/`:
 
-- `personal-website/public/robots.txt`:
-  ```
-  User-agent: *
-  Allow: /
-  Sitemap: https://SITE/sitemap.xml
-  ```
-- `personal-website/public/sitemap.xml` with the single URL `https://SITE/`.
+```bash
+npm run setup
+```
 
-Check the result with LinkedIn Post Inspector or opengraph.xyz after
-deploying.
+That installs Playwright and its browser. This one command was not run in
+the cloud session, which had its own copy of Playwright.
 
-## Task 4: Matomo loaded twice, plus privacy
+Then, with `npm run preview` running in `personal-website/`:
 
-`public/js/matomo.js` loads **both** the classic tracker and Tag Manager
-(container `CZOdWKhK`). If the container also has a Matomo Analytics tag,
-every page view is counted twice.
+```bash
+node infra/verify/verify.cjs
+```
 
-1. Open `https://analytics.reaw.me` → Tag Manager → the container → Tags
-   (and check the published version).
-2. If it has a Matomo tag, delete the "Matomo tracker" block from
-   `matomo.js`. If the container is empty or unused, delete the "Tag Manager"
-   block instead. Confirm the choice with the owner.
-3. Check in Visits Log that one visit records exactly one page view.
-4. Privacy: ask the owner whether to run cookieless. If yes, add
-   `_paq.push(["disableCookies"]);` before `trackPageView`, or enable
-   "Disable cookies" in the container's Matomo Configuration variable. If
-   cookies stay, add a short privacy note in the footer (visitors may be
-   covered by GDPR or Thailand's PDPA).
+**Done when:** it prints `15 of 15 checks passed`.
 
-## Task 5: Getform spam settings
+### Step 1: Apply the domain
 
-The form now sends a hidden `_gotcha` field, which is Getform's default
-honeypot name.
+```bash
+node infra/scripts/set-domain.mjs https://SITE
+```
 
-1. Getform dashboard → the form → Settings → Spam filtering: make sure the
-   honeypot is enabled and its field name is `_gotcha`. Enable reCAPTCHA or
-   other spam filtering if the plan has it.
-2. Test it:
-   - a normal submission arrives;
-   - a submission with `_gotcha` filled in (set it in DevTools) is
-     filtered.
+Use the main address from question 2, with no path. Then lint, build and
+commit.
 
-## Task 6: Discord notifications for the contact form
+**Done when:** `personal-website/index.html` has a block between the
+`site-url:start` and `site-url:end` comments, and `robots.txt` and
+`sitemap.xml` exist in `personal-website/public/`.
 
-Follow **[`SOP-discord-contact-notifications.md`](SOP-discord-contact-notifications.md)**.
-You will handle the webhook key. The SOP covers secret handling, the relay
-code, tests, deployment, the frontend change, the CSP update and leak checks.
+### Step 2: Check the host's build settings
 
-## Task 7: Small verifications
+| Setting | Value |
+| --- | --- |
+| Base directory | `personal-website` |
+| Build command | `npm run build` |
+| Output directory | `dist` |
+| Node version | 22 |
 
-1. **HTTPS for the university links.** Run:
+### Step 3: Security headers
+
+Generate the config in report-only mode first. Nothing is blocked in this
+mode; the browser only reports what would be.
+
+| Host | Command | Result |
+| --- | --- | --- |
+| Cloudflare Pages | `node infra/headers/generate.mjs cloudflare --write` | writes `personal-website/public/_headers` |
+| Netlify | `node infra/headers/generate.mjs netlify --write` | writes `personal-website/public/_headers` |
+| Vercel | `node infra/headers/generate.mjs vercel --write` | writes `personal-website/vercel.json` |
+| nginx | `node infra/headers/generate.mjs nginx` | prints a snippet and a server block to paste |
+| Caddy | `node infra/headers/generate.mjs caddy` | prints a site block to paste |
+| GitHub Pages | none | It cannot send custom headers. Suggest putting Cloudflare in front, or moving host, and ask the owner |
+
+Deploy, then check the live site:
+
+```bash
+node infra/verify/verify.cjs https://SITE
+```
+
+- If it reports policy violations, they most likely come from the Matomo
+  Tag Manager container, which the cloud session could not load. Add the
+  missing origin to `infra/headers/policy.mjs`, regenerate, and repeat.
+- When the run is clean, generate again with `--enforce`, deploy, and run
+  the check once more.
+
+For nginx or Caddy, you can try the config on your own machine before it
+goes live:
+
+```bash
+node infra/verify/verify.cjs http://localhost:PORT/ --server
+```
+
+`Strict-Transport-Security` is sent without `includeSubDomains`. Add that
+in `policy.mjs` only if every subdomain (`nc.`, `analytics.` and any
+others) is HTTPS-only. Confirm with the owner.
+
+**Done when:** the check passes against the live site with the enforcing
+policy, and its header lines all say `PASS`.
+
+### Step 4: Analytics
+
+The page loads both the Matomo tracker and Matomo Tag Manager. If the
+container also has a Matomo tag, each visit is counted twice.
+
+1. Open `https://analytics.reaw.me` → Tag Manager → the container → Tags,
+   and look at the published version.
+2. Copy the matching file over the live one:
+   - container has a Matomo tag:
+     ```bash
+     cp infra/analytics/matomo.tag-manager-only.js personal-website/public/js/matomo.js
+     ```
+   - container is empty or unused:
+     ```bash
+     cp infra/analytics/matomo.tracker-only.js personal-website/public/js/matomo.js
+     ```
+3. For cookieless tracking, follow the comment at the top of the file you
+   copied.
+4. If cookies stay on, add a short privacy note to the footer. Visitors
+   may be covered by GDPR or Thailand's PDPA.
+
+**Done when:** one visit shows exactly one page view in Matomo's Visits
+Log.
+
+### Step 5: Contact form
+
+1. **Getform spam settings.** The form already sends a hidden `_gotcha`
+   field. In the Getform dashboard, open the form's spam settings, make sure
+   the honeypot is on and its field name is `_gotcha`, and turn on
+   reCAPTCHA or spam filtering if the plan has it.
+2. **Discord notifications** (if the owner wants them). Follow
+   [`SOP-discord-contact-notifications.md`](SOP-discord-contact-notifications.md).
+   You handle the webhook key; it never goes in the repo.
+
+**Done when:** a normal message arrives, a message with `_gotcha` filled in
+does not, and (if set up) the message appears in the Discord channel.
+
+### Step 6: CI and Dependabot (if the owner agrees)
+
+```bash
+mkdir -p .github/workflows && cp infra/github/workflows/ci.yml .github/workflows/ci.yml && cp infra/github/dependabot.yml .github/dependabot.yml
+```
+
+Pushing a workflow file needs a token that is allowed to change workflows.
+
+**Done when:** the CI run on the pull request is green.
+
+### Step 7: Small checks
+
+1. **University links.** Three links use `http://www.ise.eng.chula.ac.th`:
+   two in `src/components/About.jsx` and one in `src/components/Awards.jsx`.
+   Run:
    ```bash
    curl -sI https://www.ise.eng.chula.ac.th/
    ```
-   If it serves HTTPS, change the three `http://www.ise.eng.chula.ac.th…`
-   links to `https://`. Two are in `src/components/About.jsx` and one is in
-   `src/components/Awards.jsx`.
-2. **Google Apps Script.** The deleted `ContactForm.jsx` also posted to a
-   Google Apps Script web app, and its URL is in the public git history.
-   Ask the owner whether that deployment is still needed. If not, archive it:
-   script.google.com → project → Deploy → Manage deployments.
-3. **Public file links.** The Nextcloud share links (`nc.reaw.me/s/…`) for
-   the CV and certificates are public by design. Ask the owner whether the
-   CV contains a phone number or home address they'd rather not publish.
+   If it answers over HTTPS, change them to `https://`.
+2. **Google Apps Script.** If the owner no longer needs it (question 7),
+   archive the deployment: script.google.com → the project → Deploy →
+   Manage deployments.
+3. **Public file links.** The CV and certificate links (`nc.reaw.me/s/…`)
+   are public on purpose. Ask the owner whether the CV shows a phone number
+   or home address they would rather not publish.
 
-## Task 8 (optional): CI and Dependabot
+### Step 8: Finish
 
-If the owner agrees:
-
-- Add `.github/workflows/ci.yml`: on push and pull request, use Node 22,
-  set the working directory to `personal-website`, then run `npm ci`,
-  `npm run lint` and `npm run build`.
-- Add `.github/dependabot.yml`: npm ecosystem, directory
-  `/personal-website`, weekly.
+1. Run the check against the live site one last time.
+2. Run the leak checks in section 7 of the SOP.
+3. With the owner's approval, open a pull request from
+   `claude/laughing-shannon-vl71kr` to `main`. Merging also removes the old
+   webhook and Apps Script addresses from the tip of `main`; they remain in
+   history, which is why the webhook had to be deleted in Discord.
 
 ---
 
-## Design notes that need the owner's decision
+## 5. What is already done on this branch
 
-These are content or taste calls, so they weren't changed:
+Details are in [`audit/AUDIT.md`](audit/AUDIT.md) and its four reports.
 
-1. **"Skills" only lists languages.** Either add technical skills (the
-   design already supports icon cards) or rename the section to
-   "Languages".
-2. **Two contact calls-to-action in a row.** The "Let's Connect" section is
-   followed immediately by the footer's "Questions? Reach Out Here". Consider
-   a simpler footer.
-3. **The Certificates section is very long on phones** (~30 cards, about a
-   third of the page). Consider showing about 6 per group with a "Show all"
-   button, or moving the Coursera list to a separate page.
-4. **Copy polish.**
-   - The About paragraph ("I am eager to learn more about those topics…")
-     could be tighter.
-   - The award titles mix styles ("First place of the scholarship fund" vs
-     "Second Place ROBOCUP@Home 2022").
-   - The ICE course link points to the department page; consider linking a
-     project or thesis.
-5. **Publications** has a single card with no image or description. A short
-   abstract line would make it look less sparse.
+- **Security:** the leaked webhook file is gone; every new-tab link is
+  protected; no inline scripts or styles remain; dependencies have no
+  known vulnerabilities.
+- **Bugs:** "Scroll down" no longer opens a new tab; the mobile menu closes
+  after a tap, on Escape, on a tap outside, and when keyboard focus leaves
+  it.
+- **Build:** a clean install builds; Vite 5 → 8.
+- **Accessibility:** names on icon-only links and buttons, one `<h1>`,
+  contrast at AA, reduced motion respected.
+- **Performance:** icon font 544 KB → 2 KB; images in WebP; 12.5 MB of
+  unused files removed; the hero image is preloaded.
+- **Responsive:** checked at 17 sizes from 280 px to 3440 px.
+- **Contact form:** honeypot, length limits, and relay support with a
+  status message.
 
----
+To recover a deleted image:
+`git checkout 7f4e233 -- personal-website/public/images/<path>`.
 
-## Definition of done
+## 6. Still open, not part of the infrastructure work
 
-- [ ] Tasks 1–7 done, or explicitly declined by the owner.
-- [ ] `npm run lint` and `npm run build` pass.
-- [ ] No CSP violations on the live site with enforcement on.
-- [ ] Leak checks from the SOP (section 7) print nothing.
-- [ ] Owner approved; PR opened from `claude/laughing-shannon-vl71kr` to
-      `main`.
+[`TODO.md`](TODO.md) is the full checklist. The larger items:
 
----
+- Build the page as HTML ahead of time, so search engines can read it
+  without running JavaScript.
+- Rework how the navbar tracks scrolling.
+- Move content into one data folder and remove the duplicates.
+- Self-host the fonts.
 
-## Added later: audit and proposal
+Content decisions for the owner:
 
-- **Full audit:** [`audit/AUDIT.md`](audit/AUDIT.md) is the index for the
-  security, accessibility, performance/SEO and code-quality/design section
-  files. Turn their "Open" findings into tasks.
-- **Business proposal:**
-  [`proposal/PROPOSAL.md`](proposal/PROPOSAL.md) is a trip-planning service
-  for Thailand's lesser-known destinations, based on the owner's NIC-NIDA
-  2023 paper. Research appendices sit in the same folder.
-- These were produced in a short time box by parallel research agents.
-  All section and research files are present. Treat every price and
-  statistic marked "approx." as unverified until you've checked its source.
-- **Task list:** [`TODO.md`](TODO.md) is the single checklist of everything
-  still open, grouped by effort.
+1. The "Skills" section only lists languages. Add technical skills, or
+   rename it "Languages".
+2. "Let's Connect" is followed at once by the footer's "Questions? Reach
+   Out Here", so the contact prompt appears twice.
+3. The certificates take up about a third of the page on phones. A "Show
+   all" button would shorten it.
+4. The Publications section is one card with no image or description.
 
-## Added later: recheck on 2026-11-13
+Also in this repo: a business proposal in
+[`proposal/PROPOSAL.md`](proposal/PROPOSAL.md), based on the owner's paper.
+Its figures marked "approx." are unverified.
 
-A full recheck re-ran a clean install, lint, build, dependency audit, the
-17-size layout sweep and the security-policy test. All passed. Changes made
-after the main "Already done" list above:
+## 7. Definition of done
 
-- The mobile menu closes on Escape, on tapping outside it, and when
-  keyboard focus leaves it. Escape returns focus to the menu button.
-- Inactive nav links were brightened to meet the 4.5:1 contrast minimum.
-- The hero image is preloaded from `index.html`.
-- Language cards use `h4` under the "Languages" `h3`.
-- The proposal was revised to v0.2: it now has a places-and-prices table,
-  a competition section, consistent commissions (12% partners, 15% guides)
-  and example trips built from researched prices.
-- A root `README.md` points to the app folder and the docs.
+- [ ] Questions in section 3 answered.
+- [ ] Steps 0 to 5 and 7 done, or declined by the owner.
+- [ ] `node infra/verify/verify.cjs https://SITE` passes with the enforcing
+      policy.
+- [ ] Leak checks print nothing.
+- [ ] Owner approved; pull request opened.

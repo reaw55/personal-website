@@ -1,0 +1,16 @@
+{
+  "name": "contact-relay",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Cloudflare Worker that forwards the portfolio contact form to Discord without exposing the webhook",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "test": "node --test test/relay.test.js",
+    "local": "node test/serve-local.mjs",
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy"
+  }
+}

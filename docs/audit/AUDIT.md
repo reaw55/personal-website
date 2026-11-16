@@ -21,6 +21,11 @@ A recheck on 2026-11-13 re-ran the build, lint, dependency audit, the
 menu by mouse, touch and keyboard. It found and fixed one gap: Escape left
 keyboard focus on a hidden menu link. Focus now returns to the menu button.
 
+**Update, 2026-11-16:** the fixes that need the owner's accounts or the
+live site are now packaged in [`../../infra/`](../../infra/README.md) and
+tested as far as possible without them. [`../HANDOFF.md`](../HANDOFF.md) is
+the runbook for applying them.
+
 ## Top open findings (from the section files)
 
 | Priority | ID | Finding | Action |
@@ -29,11 +34,11 @@ keyboard focus on a hidden menu link. Focus now returns to the menu button.
 | High | SEO-1 | All content renders client-side; without JS there is only the `<noscript>` text | Prerender at build time (the site is static) |
 | High | CQ-1/2 | Navbar changes the DOM directly and runs layout reads on every scroll event | Keep the active section in React state, driven by an `IntersectionObserver` |
 | ~~Medium~~ Fixed | A11Y-1/2/3 | Mobile menu focus-out/Escape, nav link contrast | Fixed and re-tested in a browser (mouse, touch, keyboard) |
-| Medium | SEC-3 | No security headers; the host is unknown | Apply the HANDOFF Task 2 header set (Report-Only first) |
+| Medium | SEC-3 | No security headers; the host is unknown | Packaged: hand-off step 3 (`infra/headers/generate.mjs`, report-only first) |
 | Medium | PERF-1/2 | ~~Hero image only found after the JS runs~~ (fixed: preload); the Google Fonts CSS still blocks rendering | Self-host Inter; use inline SVG icons |
-| Medium | SEO-2/3/4 | No canonical, `og:image`, robots, sitemap or JSON-LD Person | HANDOFF Task 3, plus a JSON-LD Person block |
+| Medium | SEO-2/3/4 | No canonical, `og:image`, robots, sitemap or JSON-LD Person | Packaged: hand-off step 1 (`infra/scripts/set-domain.mjs`) |
 | Medium | CQ-4/5/6 | Duplicated data (30 `imgStyle` copies; nav, social and section lists defined twice) | Move all content into `src/data/` |
-| Medium | CQ-12 | No tests and no CI | HANDOFF Task 8 |
+| Medium | CQ-12 | No tests and no CI | Packaged: hand-off step 6 (`infra/github/`). The relay has tests; the site still has none |
 | Low | CQ-7/8, UI-1..8 | Naming typos (`imcSrc`, `Cousera`, `protait`), no design tokens, inconsistent radii and labels | Clean up in one refactor PR |
 | Low | SEC-4..11 | Matomo cookies and consent, Google Fonts IP sharing, public Nextcloud links, `http://` links | See [security.md](security.md) |
 

@@ -1,0 +1,52 @@
+# Checks every push and pull request: the site lints and builds, and the
+# contact relay's tests pass.
+#
+# Not active while it lives in infra/. To turn it on:
+#   mkdir -p .github/workflows
+#   cp infra/github/workflows/ci.yml .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  site:
+    name: Site (lint and build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: personal-website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: personal-website/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - name: No known vulnerabilities in what ships to visitors
+        run: npm audit --omit=dev
+
+  relay:
+    name: Contact relay (tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/contact-relay
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test

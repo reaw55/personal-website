@@ -19,6 +19,15 @@ npm run preview   # serve dist/ locally (http://localhost:4173)
 
 Deploy the contents of `dist/`.
 
+## Settings
+
+| Variable | Purpose |
+| --- | --- |
+| `VITE_CONTACT_ENDPOINT` | Public address of the contact relay (`../infra/contact-relay`). Unset, the contact form posts straight to Getform. See `.env.example` |
+
+Hosting, security headers, the domain and the relay are set up with the
+files in `../infra/`, following `../docs/HANDOFF.md`.
+
 ## Where things live
 
 | What | Where |
@@ -28,6 +37,7 @@ Deploy the contents of `dist/`.
 | Awards / publications data | top of `Awards.jsx` / `Papers.jsx` |
 | Global styles, buttons, hero portrait sizing | `src/index.css` |
 | Analytics (Matomo) | `public/js/matomo.js` |
+| Contact form (Getform, or the relay when configured) | `src/components/Contact.jsx` |
 | Static images | `public/images/` (use WebP; keep photos ≤ ~1200 px) |
 | Link-preview image (1200×630) | `public/og-image.jpg` |
 

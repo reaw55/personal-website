@@ -1,0 +1,13 @@
+{
+  "name": "site-verify",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Browser checks for the portfolio: layout at 17 screen sizes, mobile menu, security policy, images, headers",
+  "scripts": {
+    "setup": "npm install && npx playwright install chromium",
+    "verify": "node verify.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}

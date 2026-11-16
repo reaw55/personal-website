@@ -1,5 +1,19 @@
 //contact section
 
+//node modules
+import { useState } from "react";
+
+// Public address of the contact relay (infra/contact-relay). It is not a
+// secret: the Discord webhook stays inside the relay. When this is not set
+// at build time, the form posts straight to Getform as a normal page submit.
+const CONTACT_ENDPOINT = import.meta.env.VITE_CONTACT_ENDPOINT;
+
+const STATUS_TEXT = {
+  sending: "Sending your message…",
+  sent: "Thanks! Your message has been sent.",
+  error: "Sorry, that didn't go through. Please try again, or email contact@reaw.dev.",
+};
+
 const socialLinks = [
   {
     href: "https://github.com/reaw55",
@@ -108,6 +122,29 @@ const socialLinks = [
 ];
 
 function Contact() {
+  const [status, setStatus] = useState("idle"); // idle | sending | sent | error
+
+  const handleSubmit = async (event) => {
+    if (!CONTACT_ENDPOINT) return; // no relay configured: normal Getform submit
+    event.preventDefault();
+    if (status === "sending") return;
+
+    const form = event.currentTarget;
+    setStatus("sending");
+    try {
+      // multipart/form-data is a CORS "simple" request, so no preflight
+      const response = await fetch(CONTACT_ENDPOINT, {
+        method: "POST",
+        body: new FormData(form),
+      });
+      if (!response.ok) throw new Error(`relay answered ${response.status}`);
+      form.reset();
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
+  };
+
   return (
     <section id="contact" className="section">
       <div className="container lg:grid lg:grid-cols-2 lg:items-stretch">
@@ -144,6 +181,7 @@ function Contact() {
         <form
           action="https://getform.io/f/allleooa"
           method="POST"
+          onSubmit={handleSubmit}
           className="xl:pl-10 2xl:pl-20"
         >
           <div className="md:grid md:items-center md:grid-cols-2 md:gap-2">
@@ -207,10 +245,20 @@ function Contact() {
 
           <button
             type="submit"
-            className="btn btn-primary [&]:max-w-full w-full justify-center reveal-up"
+            disabled={status === "sending"}
+            className="btn btn-primary [&]:max-w-full w-full justify-center reveal-up disabled:opacity-60 disabled:cursor-wait"
           >
-            Send Message
+            {status === "sending" ? "Sending…" : "Send Message"}
           </button>
+
+          {/* Announced by screen readers when it changes */}
+          <p
+            role="status"
+            aria-live="polite"
+            className={`mt-3 text-sm min-h-5 ${status === "error" ? "text-red-300" : "text-zinc-300"}`}
+          >
+            {STATUS_TEXT[status] ?? ""}
+          </p>
         </form>
       </div>
     </section>

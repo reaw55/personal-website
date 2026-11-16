@@ -8,21 +8,25 @@ Details for each item are in [HANDOFF.md](HANDOFF.md),
 - [ ] Skip-to-content link as the first focusable element (A11Y-4)
 - [ ] `aria-current="page"` on the active nav link (A11Y-6)
 - [ ] Heading for the About section, visually hidden if needed (A11Y-5)
-- [ ] JSON-LD `Person` schema with name, alumniOf and sameAs social links;
-      add `url` once the domain is known (SEO-4)
 - [ ] Use the full name in `<title>` (SEO-5)
 - [ ] Make labels consistent: "Publication" vs "Publications",
       "Contact Me" vs "Contact me", "ROBOCUP" vs "RoboCup" (UI-7/8)
 
 ## Needs the owner or the live environment
-- [ ] Confirm the host, the domain and that the build uses Node 20.19+ (HANDOFF Task 1)
-- [ ] Security headers and CSP: Report-Only first, then enforce (Task 2, SEC-3)
-- [ ] Canonical link, og:url, og:image, robots.txt, sitemap.xml (Task 3, SEO-2/3)
+
+Everything in this group is packaged in `infra/` and waiting to be applied.
+The steps are in [HANDOFF.md](HANDOFF.md).
+
+- [ ] Get the owner's answers: host, domain, analytics setup, Discord, CI
+      (hand-off section 3)
+- [ ] Apply the domain: canonical link, link-preview image, JSON-LD
+      `Person`, robots.txt, sitemap.xml (step 1, SEO-2/3/4)
+- [ ] Security headers: report-only first, then enforce (step 3, SEC-3)
 - [ ] Matomo: keep only one of tracker / Tag Manager; decide on cookieless
-      mode and a privacy note (Task 4, SEC-4/5)
-- [ ] Getform: enable the `_gotcha` honeypot and spam filtering (Task 5)
+      mode and a privacy note (step 4, SEC-4/5)
+- [ ] Getform: enable the `_gotcha` honeypot and spam filtering (step 5)
 - [ ] Discord notifications through the relay
-      ([SOP](SOP-discord-contact-notifications.md)) (Task 6)
+      ([SOP](SOP-discord-contact-notifications.md)) (step 5)
 - [ ] Archive the old Google Apps Script deployment; confirm the Discord
       webhook is revoked (SEC-1/2)
 - [ ] Switch the ise.eng.chula.ac.th links to https if supported (SEC-9)
@@ -36,7 +40,7 @@ Details for each item are in [HANDOFF.md](HANDOFF.md),
 - [ ] Move content into `src/data/`; deduplicate the nav, social and
       section lists and the 30 `imgStyle` copies (CQ-4/5/6)
 - [ ] Self-host Inter and replace the icon font with inline SVG (PERF-2)
-- [ ] CI (lint and build) and Dependabot (Task 8, CQ-12)
+- [ ] Turn on CI and Dependabot (step 6, CQ-12); add tests for the site itself
 - [ ] Rename `imcSrc`→`imgSrc`, `Cousera`→`Coursera`, `protait`→`portrait`,
       and give components PascalCase file names (CQ-7/8)
 - [ ] Design tokens in tailwind.config.js (colours, radii) (UI-1..6)

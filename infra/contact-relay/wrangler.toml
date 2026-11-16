@@ -1,0 +1,25 @@
+name = "contact-relay"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[vars]
+# Exact origins of the live site: scheme + host, no trailing slash,
+# comma-separated. Replace before deploying.
+ALLOWED_ORIGINS = "https://SITE_DOMAIN,https://www.SITE_DOMAIN"
+
+# Optional: also forward each message to Getform, so its email
+# notifications and archive keep working. Uncomment and set the form URL.
+# GETFORM_ENDPOINT = "https://getform.io/f/FORM_ID"
+
+# Optional per-IP rate limit. The config syntax for this binding has changed
+# over time; check Cloudflare's "Rate Limiting binding" docs before enabling.
+# [[ratelimits]]
+# name = "RATE_LIMITER"
+# namespace_id = "1001"
+#   [ratelimits.simple]
+#   limit = 5
+#   period = 60
+
+# Secrets are NOT set here. Use:
+#   npx wrangler secret put DISCORD_WEBHOOK_URL
+#   npx wrangler secret put TURNSTILE_SECRET     (optional)

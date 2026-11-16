@@ -1,0 +1,21 @@
+# Opens a pull request when a dependency has an update.
+#
+# Not active while it lives in infra/. To turn it on:
+#   mkdir -p .github
+#   cp infra/github/dependabot.yml .github/dependabot.yml
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /personal-website
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # One pull request for all minor and patch updates, to keep noise down.
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

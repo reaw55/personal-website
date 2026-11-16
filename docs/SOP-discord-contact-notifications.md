@@ -1,264 +1,135 @@
-# SOP: Discord notifications for the contact form (without exposing the webhook)
+# SOP: Discord notifications for the contact form
 
-**Audience:** a local Claude agent (or a person) with access to the owner's
-Discord server and a Cloudflare account.
-**Goal:** every contact form submission posts a message to a private Discord
-channel, while the Discord webhook URL never appears in this repo, the built
-site, or the browser.
+**Goal:** every contact-form message also appears in a private Discord
+channel, and the Discord webhook URL never appears in this repo, in the
+built site or in the browser.
+
+**Who this is for:** a local Claude agent, or a person, with access to the
+owner's Discord server and a Cloudflare account.
+
+The code is already written and tested. This SOP only covers the steps
+that need the real key and real accounts.
+
+| Piece | Where | State |
+| --- | --- | --- |
+| Relay (Cloudflare Worker) | `infra/contact-relay/` | Written; 16 tests pass; never deployed |
+| Website form | `personal-website/src/components/Contact.jsx` | Already uses the relay when `VITE_CONTACT_ENDPOINT` is set at build time; otherwise posts to Getform as before |
+| Security policy | `infra/headers/generate.mjs --relay=…` | Adds the relay to the allowed connections |
 
 ---
 
-## 0. Rules (read first)
+## 0. Rules
 
 1. **A Discord webhook URL is a password.** Anyone who has it can post to
-   the channel, rename the webhook, or delete it.
-2. **Never** put it in: this repo (it is **public**), `index.html`, any
-   `src/` file, any `VITE_*` environment variable (Vite inlines those into the
-   public JS bundle), a commit message, a PR, an issue, or a chat transcript.
-3. It lives **only** in the relay's secret store
-   (`wrangler secret put …`) and, for local testing, in a git-ignored
-   `.dev.vars` file.
-4. The browser never talks to Discord. It talks to the relay; the relay talks
-   to Discord.
-5. Ask the site owner before deploying, adding DNS records, or creating paid
-   resources.
+   the channel, rename the webhook or delete it.
+2. **Never** put it in:
+   - this repo, which is **public**;
+   - any `VITE_*` variable, because Vite copies those into the public
+     JavaScript;
+   - a commit message, pull request, issue or chat.
+3. It lives in exactly two places: Cloudflare's secret store, and a
+   git-ignored `infra/contact-relay/.dev.vars` on your machine while
+   testing.
+4. Ask the owner before deploying or adding a custom domain.
 
-> History: an earlier `ContactForm.jsx` called Discord straight from the
-> browser with the URL hardcoded. That webhook has been deleted by the owner
-> and the file removed. Don't reintroduce that pattern.
+An earlier `ContactForm.jsx` called Discord straight from the browser with
+the URL in the code. The owner has deleted that webhook. Create a new one;
+do not look for the old one.
 
----
-
-## 1. Architecture
+## 1. How it works
 
 ```
 Visitor's browser
-  │  POST multipart/form-data (name, email, message, _gotcha)
+  │  POST form fields (name, email, message, _gotcha)
   ▼
-contact-relay  (Cloudflare Worker, holds DISCORD_WEBHOOK_URL as a secret)
-  │  1. Origin allow-list, size limits, honeypot, optional rate limit/Turnstile
-  ├──► Discord webhook  (embed, mentions disabled)
-  └──► Getform          (optional: keeps email notifications + archive)
+contact-relay  (holds DISCORD_WEBHOOK_URL as a secret)
+  │  checks: allowed origin, size, honeypot, field limits,
+  │          optional rate limit and Turnstile
+  ├──► Discord webhook   (an embed; mentions switched off)
+  └──► Getform           (optional, keeps the email notification)
 ```
 
-Why a Worker: the site's host is static, a Worker is free for this
-volume, works regardless of where the site is hosted, and has an encrypted
-secret store. Any serverless platform with secrets works the same way
-(Vercel/Netlify functions, a small server on the owner's box); adapt the
-code if the owner prefers one of those.
+The relay's public address is not a secret. Without the checks above
+passing, a request to it sends nothing.
 
-### Alternative (simpler, if available): Getform → relay → Discord
+## 2. Create the Discord webhook
 
-If the owner's Getform plan has **Webhooks** (Getform dashboard → form →
-Settings / Integrations), Getform itself can call the relay after its own
-spam filtering. Then the website needs **no changes**:
+1. In Discord, open the owner's server and pick a **private** channel, for
+   example `#portfolio-inbox`.
+2. Edit Channel → Integrations → Webhooks → **New Webhook**. Name it
+   `Portfolio contact form`.
+3. Click **Copy Webhook URL**. Keep it in the clipboard only.
 
-- Protect the relay endpoint with a long random token stored as a secret
-  (`GETFORM_WEBHOOK_TOKEN`) and configured in Getform's webhook URL
-  (`https://<relay>/getform?token=…`), and reject requests without it.
-- Check Getform's docs for the exact webhook payload shape before writing the
-  parser (this SOP's author could not reach docs.getform.io to confirm it).
-- Steps 2–5 below still apply (secret handling, test, deploy). Skip step 6.
+## 3. Try it on your machine first
 
-Use whichever the owner prefers; the rest of this SOP describes the default
-(browser → relay).
+From `infra/contact-relay/`:
 
----
-
-## 2. Create a new Discord webhook
-
-1. Discord → the owner's server → a **private** channel (e.g. `#portfolio-inbox`)
-   → Edit Channel → Integrations → Webhooks → **New Webhook**.
-2. Name it `Portfolio contact form`. Click **Copy Webhook URL**.
-3. Keep it only in your clipboard. You will paste it into the
-   `wrangler secret put` prompt in step 4. Do not paste it anywhere else.
-
----
-
-## 3. Create the relay (in this repo, no secrets in files)
-
-Create a folder at the repo root:
-
-```
-contact-relay/
-  .gitignore
-  wrangler.toml
-  src/index.js
+```bash
+npm test
 ```
 
-### `contact-relay/.gitignore`
+All 16 tests should pass. They use no network and no real key.
 
-```gitignore
-node_modules
-.wrangler
-.dev.vars
+Create the local settings file, then paste the webhook URL into it:
+
+```bash
+cp .dev.vars.example .dev.vars
 ```
 
-### `contact-relay/wrangler.toml`
-
-```toml
-name = "contact-relay"
-main = "src/index.js"
-compatibility_date = "YYYY-MM-DD"   # use the date you deploy
-
-[vars]
-# Exact origins of the live site (scheme + host, no trailing slash).
-ALLOWED_ORIGINS = "https://SITE_DOMAIN,https://www.SITE_DOMAIN"
-# Optional: also forward to Getform so email notifications/archive keep working.
-# GETFORM_ENDPOINT = "https://getform.io/f/<form-id>"
-
-# Optional per-IP rate limit. The Workers Rate Limiting binding's config
-# syntax has changed over time: check Cloudflare's current docs
-# ("Rate Limiting binding") before enabling.
-# [[ratelimits]]
-# name = "RATE_LIMITER"
-# namespace_id = "1001"
-#   [ratelimits.simple]
-#   limit = 5
-#   period = 60
+```bash
+git check-ignore .dev.vars
 ```
 
-### `contact-relay/src/index.js`
+The second command must print `.dev.vars`. If it prints nothing, stop: the
+file is not ignored.
 
-```js
-// Receives the portfolio contact form and forwards it to Discord (and
-// optionally Getform). Secrets are set with `wrangler secret put`, never
-// committed:
-//   DISCORD_WEBHOOK_URL  (required)
-//   TURNSTILE_SECRET     (optional: enables Cloudflare Turnstile verification)
-// Plain vars (wrangler.toml): ALLOWED_ORIGINS, GETFORM_ENDPOINT (optional)
+Start the relay locally. This runs the same code on plain Node, with no
+Cloudflare account needed:
 
-const LIMITS = { name: 100, email: 254, message: 5000 };
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export default {
-  async fetch(request, env) {
-    const allowed = (env.ALLOWED_ORIGINS || "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const origin = request.headers.get("Origin") || "";
-    const cors = {
-      "Access-Control-Allow-Origin": allowed.includes(origin) ? origin : "null",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Max-Age": "86400",
-      Vary: "Origin",
-    };
-    const reply = (status, body) =>
-      new Response(JSON.stringify(body), {
-        status,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
-
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-    if (request.method !== "POST") return reply(405, { ok: false, error: "method_not_allowed" });
-
-    // Stops other websites from using the relay. (Scripts can fake Origin;
-    // that's what the honeypot, limits, rate limit and Turnstile are for.)
-    if (!allowed.includes(origin)) return reply(403, { ok: false, error: "forbidden" });
-
-    if (env.RATE_LIMITER) {
-      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-      const { success } = await env.RATE_LIMITER.limit({ key: ip });
-      if (!success) return reply(429, { ok: false, error: "rate_limited" });
-    }
-
-    let form;
-    try {
-      form = await request.formData();
-    } catch {
-      return reply(400, { ok: false, error: "bad_request" });
-    }
-
-    // Honeypot filled in => bot. Pretend success so it doesn't retry.
-    if (form.get("_gotcha")) return reply(200, { ok: true });
-
-    const field = (k) => String(form.get(k) ?? "").trim();
-    const name = field("name");
-    const email = field("email");
-    const message = field("message");
-    if (
-      !name || !email || !message ||
-      name.length > LIMITS.name ||
-      email.length > LIMITS.email ||
-      message.length > LIMITS.message ||
-      !EMAIL_RE.test(email)
-    ) {
-      return reply(400, { ok: false, error: "invalid_input" });
-    }
-
-    if (env.TURNSTILE_SECRET) {
-      const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        method: "POST",
-        body: new URLSearchParams({
-          secret: env.TURNSTILE_SECRET,
-          response: field("cf-turnstile-response"),
-          remoteip: request.headers.get("CF-Connecting-IP") || "",
-        }),
-      });
-      const outcome = await res.json();
-      if (!outcome.success) return reply(400, { ok: false, error: "captcha_failed" });
-    }
-
-    const toDiscord = fetch(env.DISCORD_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: "Portfolio contact form",
-        allowed_mentions: { parse: [] }, // never ping @everyone/@here/roles/users
-        embeds: [
-          {
-            title: "New message from the portfolio",
-            color: 0xfbbf24,
-            fields: [
-              { name: "Name", value: name, inline: true },
-              { name: "Email", value: email, inline: true },
-            ],
-            // Discord embed description limit is 4096 chars
-            description: message.length > 4000 ? message.slice(0, 4000) + "…" : message,
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      }),
-    });
-
-    let toGetform = Promise.resolve(null);
-    if (env.GETFORM_ENDPOINT) {
-      const fd = new FormData();
-      fd.set("name", name);
-      fd.set("email", email);
-      fd.set("message", message);
-      toGetform = fetch(env.GETFORM_ENDPOINT, {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        body: fd,
-      });
-    }
-
-    const [discord, getform] = await Promise.allSettled([toDiscord, toGetform]);
-    const delivered = (r) => r.status === "fulfilled" && r.value && r.value.ok;
-
-    // Log status codes only: never log the visitor's message or email.
-    if (!delivered(discord)) {
-      console.error("discord_failed", discord.status === "fulfilled" ? discord.value.status : "network");
-    }
-    if (env.GETFORM_ENDPOINT && !delivered(getform)) {
-      console.error("getform_failed", getform.status === "fulfilled" ? getform.value.status : "network");
-    }
-
-    return delivered(discord) || delivered(getform)
-      ? reply(200, { ok: true })
-      : reply(502, { ok: false, error: "delivery_failed" });
-  },
-};
+```bash
+npm run local
 ```
 
----
+In a second terminal, send one real message:
 
-## 4. Secrets and local test
+```bash
+curl -i -H "Origin: http://localhost:5173" -F name=Test -F email=t@example.com -F message="Hello from the SOP" http://localhost:8787
+```
 
-From `contact-relay/` (wrangler is run via `npx`, no global install needed):
+Expect `HTTP/1.1 200` and the message in the Discord channel. Then check
+the refusals:
+
+| Case | Change to the command | Expect |
+| --- | --- | --- |
+| Honeypot | add `-F _gotcha=x` | `200`, and **nothing** in Discord |
+| Wrong origin | `-H "Origin: https://evil.example"` | `403` |
+| Bad email | `-F email=nope` | `400` |
+| Mention spam | replace the message with `--form-string "message=@everyone hi"` | `200`; the text shows, but nobody is pinged |
+| Wrong method | `curl -i http://localhost:8787` | `405` |
+
+The mention case needs `--form-string` because curl treats a `-F` value
+that starts with `@` as a file to upload.
+
+To try the whole path with the site, keep the relay running and, from
+`personal-website/`, start the dev server with the relay address set:
+
+```bash
+VITE_CONTACT_ENDPOINT=http://localhost:8787 npm run dev
+```
+
+Submit the form at `http://localhost:5173`. The page should say "Thanks!
+Your message has been sent." without leaving the page.
+
+## 4. Deploy the relay
+
+Edit `infra/contact-relay/wrangler.toml`:
+
+- set `ALLOWED_ORIGINS` to the live site's exact origins, for example
+  `https://example.com,https://www.example.com`;
+- to keep Getform's email notification, uncomment `GETFORM_ENDPOINT` and
+  set it to the form's address (the `action` URL in `Contact.jsx`).
+
+Then, from `infra/contact-relay/`:
 
 ```bash
 npx wrangler login
@@ -268,151 +139,87 @@ npx wrangler login
 npx wrangler secret put DISCORD_WEBHOOK_URL
 ```
 
-Paste the webhook URL at the prompt. It is encrypted at Cloudflare and not
-readable afterwards, not even by you.
-
-For local testing, create `contact-relay/.dev.vars` (git-ignored; confirm
-with `git check-ignore contact-relay/.dev.vars` before writing it):
-
-```ini
-DISCORD_WEBHOOK_URL=<paste here, local only>
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:4173
-```
-
-```bash
-npx wrangler dev
-```
-
-Test matrix (relay on `http://localhost:8787`):
-
-| Case | Command | Expect |
-| --- | --- | --- |
-| Valid | `curl -i -H "Origin: http://localhost:5173" -F name=Test -F email=t@example.com -F message=Hello http://localhost:8787` | `200`, message appears in Discord |
-| Honeypot | add `-F _gotcha=x` | `200`, **nothing** in Discord |
-| Wrong origin | `-H "Origin: https://evil.example"` | `403` |
-| Bad email | `-F email=nope` | `400` |
-| Too long | `-F message="$(head -c 6000 /dev/zero \| tr '\0' a)"` | `400` |
-| Mention spam | `-F message="@everyone hi"` | `200`, message shows text but **no ping** |
-| GET | `curl -i http://localhost:8787` | `405` |
-
-Delete `.dev.vars` when done if the machine is shared.
-
----
-
-## 5. Deploy
+Paste the webhook URL at the prompt. Cloudflare encrypts it; nobody can
+read it back afterwards.
 
 ```bash
 npx wrangler deploy
 ```
 
-Note the URL it prints (e.g. `https://contact-relay.<account>.workers.dev`).
-Optionally (with the owner's OK) attach a custom domain such as
-`contact.SITE_DOMAIN` in the Cloudflare dashboard → Worker → Settings → Domains.
+Note the address it prints, such as
+`https://contact-relay.ACCOUNT.workers.dev`. Repeat the "valid", "wrong
+origin" and "honeypot" tests from step 3 against that address, with
+`Origin` set to the live site.
 
-Re-run the "Valid", "Wrong origin" and "Honeypot" tests against the deployed
-URL, with `Origin` set to the live site.
+The Worker has not been run on Cloudflare yet. If `wrangler deploy`
+rejects `compatibility_date`, set it to today's date.
 
----
+## 5. Point the website at the relay
 
-## 6. Wire up the website
-
-The relay URL is **not** a secret (it is useless without passing the checks),
-so it can be a public `VITE_` variable.
-
-1. In `personal-website/.env.production` (or the host's build environment):
+1. Set the relay address where the site is built. Either create
+   `personal-website/.env.production`:
 
    ```ini
-   VITE_CONTACT_ENDPOINT=https://contact-relay.<account>.workers.dev
+   VITE_CONTACT_ENDPOINT=https://contact-relay.ACCOUNT.workers.dev
    ```
 
-2. In `personal-website/src/components/Contact.jsx`, submit with `fetch`
-   when the endpoint is configured, and keep the plain Getform POST as a
-   fallback when it isn't:
+   or set the same variable in the host's build settings. This value is
+   public, so committing it is fine.
+2. Regenerate the security headers with the relay allowed (see the
+   hand-off, step 4):
 
-   ```jsx
-   import { useState } from "react";
-
-   // Public URL of the contact relay (not a secret). Unset => plain Getform POST.
-   const CONTACT_ENDPOINT = import.meta.env.VITE_CONTACT_ENDPOINT;
-
-   function Contact() {
-     const [status, setStatus] = useState("idle"); // idle | sending | sent | error
-
-     const handleSubmit = async (e) => {
-       if (!CONTACT_ENDPOINT) return; // fall back to the form's action
-       e.preventDefault();
-       const form = e.currentTarget;
-       setStatus("sending");
-       try {
-         // multipart/form-data is a CORS "simple" request: no preflight needed
-         const res = await fetch(CONTACT_ENDPOINT, { method: "POST", body: new FormData(form) });
-         if (!res.ok) throw new Error(String(res.status));
-         form.reset();
-         setStatus("sent");
-       } catch {
-         setStatus("error");
-       }
-     };
-
-     // ...existing JSX, with:
-     // <form action="https://getform.io/f/…" method="POST" onSubmit={handleSubmit} …>
-     // <button type="submit" disabled={status === "sending"} …>
-     //   {status === "sending" ? "Sending…" : "Send Message"}
-     // </button>
-     // <p role="status" aria-live="polite" className="mt-3 text-sm text-zinc-400">
-     //   {status === "sent" && "Thanks! Your message has been sent."}
-     //   {status === "error" && "Sorry, that didn't go through. Please email contact@reaw.dev."}
-     // </p>
-   }
+   ```bash
+   node infra/headers/generate.mjs HOST --relay=https://contact-relay.ACCOUNT.workers.dev --write
    ```
 
-3. Content-Security-Policy (see `HANDOFF.md`): add the relay origin to
-   `connect-src`. If Turnstile is used, also add
-   `https://challenges.cloudflare.com` to `script-src` and `frame-src`.
+3. Build, deploy, and submit the form on the live site. Then run the
+   checks:
 
-4. `npm run lint && npm run build`, then test a real submission from
-   `npm run preview` (add `http://localhost:4173` to `ALLOWED_ORIGINS` in
-   `.dev.vars` only) and again on the live site.
+   ```bash
+   node infra/verify/verify.cjs https://SITE --relay=https://contact-relay.ACCOUNT.workers.dev
+   ```
 
-### Optional: Cloudflare Turnstile (stronger bot protection)
+## 6. Optional hardening
 
-Create a Turnstile widget for the site domain in Cloudflare. The **site key**
-is public and goes in the form's widget (`<div class="cf-turnstile"
-data-sitekey="…">` plus Turnstile's script). The **secret key** goes in the
-relay: `npx wrangler secret put TURNSTILE_SECRET`. The relay code above
-already verifies it when the secret is set.
+- **Rate limit:** uncomment the `[[ratelimits]]` block in `wrangler.toml`.
+  Check Cloudflare's current "Rate Limiting binding" docs first, because
+  the config syntax has changed over time. The Worker already uses the
+  binding when it exists.
+- **Turnstile (bot check):** create a widget for the site in Cloudflare.
+  - Put the *secret key* in the relay:
+    `npx wrangler secret put TURNSTILE_SECRET`. The Worker then requires a
+    valid token.
+  - Add the widget to the form in `Contact.jsx` with the public *site key*.
+    This part is not built yet.
+  - Regenerate the headers with `--turnstile`.
+- **Getform-only alternative:** if the owner's Getform plan has webhooks,
+  Getform can call a relay itself and the website needs no relay address.
+  That variant is not built; the Worker would need a token check and a
+  parser for Getform's payload.
 
----
-
-## 7. Final leak checks (must all pass before pushing)
+## 7. Leak checks before every push
 
 ```bash
-git grep -n "discord.com/api/webhooks" -- . ':!docs'
+git grep -nE "discord(app)?\.com/api/webhooks/[0-9]" -- .
 ```
 
 ```bash
-git grep -n "discordapp.com/api/webhooks" -- . ':!docs'
+git ls-files infra/contact-relay/.dev.vars
 ```
 
 ```bash
 grep -rn "discord" personal-website/dist/
 ```
 
-All three must print nothing. Also confirm `contact-relay/.dev.vars` is
-untracked:
-
-```bash
-git status --short contact-relay/
-```
-
----
+All three must print nothing. The second one shows whether the local
+settings file was ever added to git.
 
 ## 8. If the webhook ever leaks
 
-1. Discord → channel → Integrations → Webhooks → delete the leaked webhook
-   (this immediately disables the URL).
+1. In Discord, delete the webhook. That disables the URL at once.
 2. Create a new one (step 2).
-3. `npx wrangler secret put DISCORD_WEBHOOK_URL` with the new URL. No
-   redeploy of the website is needed.
-4. If it was committed: removing it from the latest commit is not enough
-   (git history is public), which is why step 1 comes first.
+3. Run `npx wrangler secret put DISCORD_WEBHOOK_URL` with the new URL. The
+   website does not need a redeploy.
+
+Deleting it from a later commit is not enough, because git history is
+public. That is why step 1 comes first.
